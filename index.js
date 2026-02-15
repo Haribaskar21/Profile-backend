@@ -222,11 +222,23 @@ app.delete("/api/experience/:id", authMiddleware, async (req, res) => {
 
 // Public profile
 app.get("/api/public/:userId/profile", async (req, res) => {
-  const userId = req.params.userId;
-  const profile = await Profile.findOne({ userId });
-  const skills = await Skill.find({ userId });
-  const experience = await Experience.find({ userId });
-  res.json({ profile, skills, experience });
+  try {
+    const { userId } = req.params;
+
+    // Validate ObjectId before querying
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: "Invalid userId" });
+    }
+
+    const profile = await Profile.findOne({ userId });
+    const skills = await Skill.find({ userId });
+    const experience = await Experience.find({ userId });
+
+    res.json({ profile, skills, experience });
+  } catch (err) {
+    console.error("Public profile error:", err);
+    res.status(500).json({ message: "Server error" });
+  }
 });
 
 // ------------------ START ------------------
